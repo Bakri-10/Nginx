@@ -1,0 +1,47 @@
+name: Terraform Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: Run Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.5.0  # You can change this to any version you need
+
+    - name: Initialize Terraform
+      run: |
+        cd infra
+        terraform init
+
+    - name: Plan Terraform deployment
+      run: |
+        cd infra
+        terraform plan
+
+    - name: Apply Terraform deployment
+      run: |
+        cd infra
+        terraform apply -auto-approve
+
+    - name: Output Public IP of EC2 instance
+      run: |
+        cd infra
+        terraform output public_ip
